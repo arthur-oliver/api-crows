@@ -405,7 +405,7 @@ def ranking_municipios(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno, sessi
 
         cargas_top5["VALOR_AGREGADO_FORMAT"] = cargas_top5['VALOR AGREGADO'].apply(lambda x:text_template.format(x))
 
-        cargas_top5['descricao'] = (cargas_top5['SH4'].astype(str) + ' - ' + cargas_top5['PRODUTO_LIMITADO'] + ' - (Valor Agregado da Carga: R$ ' +cargas_top5['VALOR_AGREGADO_FORMAT'] + ')')
+        cargas_top5['descricao'] = (cargas_top5['SH4'].astype(str) + ' - ' + cargas_top5['PRODUTO_LIMITADO'] + ' - (Valor Agregado da Carga: ' +cargas_top5['VALOR_AGREGADO_FORMAT'] + ')')
 
         carga_agrupada = cargas_top5.groupby('CO_MUN')['descricao'].apply(lambda x: '<br>'.join(x)).reset_index()
 
@@ -511,13 +511,13 @@ def ranking_municipios(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno, sessi
         font=dict(family='Arial', size=12),
         hoverlabel=dict(bgcolor="white", font_size=13, font_family="Rockwell"),
         plot_bgcolor='white',
-        margin=dict(l=60, r=60, t=60, b=60),
+        margin=dict(l=60, r=60, t=60, b=80),
         showlegend=True,
         autosize=True,
         legend=dict(
             orientation="h",
             yanchor="middle",
-            y=-1.0,
+            y=-1.5,
             xanchor="right",
             x=1,
             font=dict(
@@ -583,7 +583,7 @@ def ranking_municipios_cargas(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno
 
         cargas_top5["VALOR_AGREGADO_FORMAT"] = cargas_top5['VALOR AGREGADO'].apply(lambda x:text_template.format(x))
 
-        cargas_top5['descricao'] = (cargas_top5['SH4'].astype(str) + ' - ' + cargas_top5['PRODUTO_LIMITADO'] + ' - (Valor Agregado da Carga: R$ ' +cargas_top5['VALOR_AGREGADO_FORMAT'] + ')')
+        cargas_top5['descricao'] = (cargas_top5['SH4'].astype(str) + ' - ' + cargas_top5['PRODUTO_LIMITADO'] + ' - (Valor Agregado da Carga: ' +cargas_top5['VALOR_AGREGADO_FORMAT'] + ')')
   
         carga_agrupada = cargas_top5.groupby('CO_MUN')['descricao'].apply(lambda x: '<br>'.join(x)).reset_index()
         

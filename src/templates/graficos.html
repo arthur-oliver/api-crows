@@ -117,17 +117,17 @@
                 </div>
 
                 <div class="grafico-container">
-                    <h1>Top 10 Produtos em {{tipo_lower}} por {{metrica}} dos municípios</h1>
+                    <h1>Top 10 Produtos em {{tipo}} por {{metrica}} dos municípios</h1>
                     <iframe class="responsive-iframe" src="{{ url_for('grafico_segundo') }}"></iframe>
                 </div>
 
                 <div class="grafico-container">
-                    <h1>Top 10 municípios por {{metrica}} de {{tipo_lower}} melhores 5 cargas</h1>
+                    <h1>Top 10 municípios por {{metrica}} de {{tipo}} melhores 5 cargas</h1>
                     <iframe class="responsive-iframe" src="{{ url_for('grafico_terceiro') }}"></iframe>
                 </div>
 
                 <div class="grafico-container">
-                    <h1>Top 10 municípios por {{metrica}} de {{tipo_lower}} melhores 30 cargas</h1>
+                    <h1>Top 10 municípios por {{metrica}} de {{tipo}} melhores 30 cargas</h1>
                     <iframe class="responsive-iframe" src="{{ url_for('grafico_quarto') }}"></iframe>
                 </div>
                 {% if grafico_quinto %}
