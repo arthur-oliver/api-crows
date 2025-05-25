@@ -44,7 +44,7 @@ A metodologia ágil, especificamente o Scrum, é uma abordagem iterativa e incre
 
 1. Wireframe: ![Protótipo navegável](/assets/protótipo-figma.gif)
 2. Web Site: ![Primeira versão](/assets/site-sprint-2.gif)
-3. Web Site: [Sistema completo (responsivo)](/assets/mvp_3.gif)
+3. Web Site: ![Sistema completo (responsivo)](/assets/mvp_3.gif)
 
 ## 🛠️ Backlog do Produto
 **:link: Clique abaixo para visualizar o backlog da sprint.**
