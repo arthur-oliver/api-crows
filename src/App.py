@@ -263,7 +263,7 @@ def graficos():
 
 
     #Renderiza a página de gráficos
-    return render_template('graficos.html', mostrar_grafico=mostrar_grafico, grafico_quinto=grafico_quinto, error=error)
+    return render_template('graficos.html', mostrar_grafico=mostrar_grafico, grafico_quinto=grafico_quinto)
 
 #------ Rotas para exibir os arquivos HTML dos gráficos ----
 @app.route('/grafico_primeiro')
