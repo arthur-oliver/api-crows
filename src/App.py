@@ -102,6 +102,9 @@ def graficos():
     #Limpa os caminhos antes de gerar novos gráficos
     global caminhos
     caminhos.clear()
+    tipo =''
+    metrica = ''
+    metrica_lower =''
 
 #------------ Se o usuário enviou o formulário--------------
     if request.method == 'POST':
@@ -266,9 +269,16 @@ def graficos():
                 session['caminhos'] = caminhos
                 mostrar_grafico = True
 
+    tipo_lower = tipo.lower()
+    if metrica == 'VALOR AGREGADO':
+        metrica_lower = 'valor agregado'
+    elif metrica == 'KG_LIQUIDO':
+        metrica_lower = 'valor kg líquido'
+    elif metrica == 'VL_FOB':
+        metrica_lower = 'valor FOB'
 
     #Renderiza a página de gráficos
-    return render_template('graficos.html', mostrar_grafico=mostrar_grafico, grafico_quinto=grafico_quinto)
+    return render_template('graficos.html', mostrar_grafico=mostrar_grafico, grafico_quinto=grafico_quinto, tipo=tipo_lower, metrica=metrica_lower)
 
 #------ Rotas para exibir os arquivos HTML dos gráficos ----
 @app.route('/grafico_primeiro')

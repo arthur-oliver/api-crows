@@ -102,7 +102,7 @@ def balanca_comercial(df_exp, df_imp, df_mun, retorno, session_id,periodo_inicia
         y='BALANCA',
         color='NO_MUN_MIN',
         markers=True,
-        title='Balança Comercial por Município (Exportação - Importação)',
+        title=None,
         labels={'NO_MUN_MIN': 'Município', 'BALANCA': 'Balança Comercial (US$)'},
         line_shape='linear',
         hover_data={'NO_MUN_MIN': True, 'BALANCA': ':.2f'},
@@ -170,11 +170,11 @@ def balanca_comercial(df_exp, df_imp, df_mun, retorno, session_id,periodo_inicia
 
     # Layout geral
     fig.update_layout(
-        title={'text': 'Balança Comercial por Município (Exportação - Importação)', 'x': 0.5, 'xanchor': 'center'},
+        title=None,
         annotations = [dict(
             text = f'{periodo_inicial_grafico} - {periodo_final_grafico}',
             x = 0.5,
-            y = 1.05, 
+            y = 1.10, 
             xref = "paper", 
             yref="paper",
             font = dict(
@@ -189,7 +189,7 @@ def balanca_comercial(df_exp, df_imp, df_mun, retorno, session_id,periodo_inicia
         font=dict(family='Arial', size=12),
         hoverlabel=dict(bgcolor="white", font_size=13, font_family="Rockwell"),
         plot_bgcolor='white',
-        margin=dict(l=60, r=60, t=100, b=60),
+        margin=dict(l=60, r=60, t=60, b=60),
         showlegend=True,
         autosize=True,
         legend=dict(
@@ -297,8 +297,8 @@ def funil_por_produto(df, df_sh4, tipo, metrica, retorno, session_id,periodo_ini
 
     # Define o rótulo de eixo e o texto do gráfico de acordo com a métrica
     if metrica == 'KG_LIQUIDO': 
-        unidade = 'KG' 
-        text_template = 'KG %{x:,.0f}' 
+        unidade = 'kg' 
+        text_template = 'kg %{x:,.0f}' 
     else: 
         unidade = 'US$' 
         text_template = 'US$ %{x:,.0f}' 
@@ -308,7 +308,7 @@ def funil_por_produto(df, df_sh4, tipo, metrica, retorno, session_id,periodo_ini
         df_total,
         y='PRODUTO_LIMITADO',
         x=f'{metrica}',
-        title=f'Top 10 Produtos em {tipo_lower} por {metrica} dos municípios',
+        title=f'',
         labels={f'{metrica}': f'{tipo} ({unidade})', 'PRODUTO_LIMITADO': 'Produto'},
         color='PRODUTO_LIMITADO',
         hover_name='hover_text',  # Mostra nome completo no tooltip
@@ -329,7 +329,7 @@ def funil_por_produto(df, df_sh4, tipo, metrica, retorno, session_id,periodo_ini
         annotations = [dict(
             text = f'{periodo_inicial_grafico} - {periodo_final_grafico}',
             x = 0.5,
-            y = 1.05, 
+            y = 1.10, 
             xref = "paper", 
             yref="paper",
             font = dict(
@@ -339,7 +339,7 @@ def funil_por_produto(df, df_sh4, tipo, metrica, retorno, session_id,periodo_ini
         )],
         font=dict(family='Arial', size=12),
         hoverlabel=dict(bgcolor="white", font_size=13, font_family="Rockwell"),
-        margin=dict(l=60, r=60, t=100, b=60),
+        margin=dict(l=60, r=60, t=80, b=60),
         showlegend=False,
         autosize=True,  
         yaxis=dict(
@@ -377,8 +377,8 @@ def ranking_municipios(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno, sessi
     
     # Define o rótulo de eixo e o texto do gráfico de acordo com a métrica
     if metrica == 'KG_LIQUIDO': 
-        unidade = 'KG' 
-        text_template = 'KG {:,.1f}' 
+        unidade = 'kg' 
+        text_template = 'kg {:,.1f}' 
     else: 
         unidade = 'US$' 
         text_template = 'US$ {:,.1f}' 
@@ -490,11 +490,11 @@ def ranking_municipios(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno, sessi
 
     # Layout geral
     fig.update_layout(
-        title={'text': f'Top 10 municípios por {metrica} de {tipo}', 'x': 0.5, 'xanchor': 'center'},
+        title=None,
         annotations = [dict(
             text = f'{periodo_inicial_grafico} - {periodo_final_grafico}',
             x = 0.5,
-            y = 1.05, 
+            y = 1.10, 
             xref = "paper", 
             yref="paper",
             font = dict(
@@ -511,7 +511,7 @@ def ranking_municipios(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno, sessi
         font=dict(family='Arial', size=12),
         hoverlabel=dict(bgcolor="white", font_size=13, font_family="Rockwell"),
         plot_bgcolor='white',
-        margin=dict(l=60, r=60, t=100, b=60),
+        margin=dict(l=60, r=60, t=60, b=60),
         showlegend=True,
         autosize=True,
         legend=dict(
@@ -553,8 +553,8 @@ def ranking_municipios_cargas(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno
     
     # Define o rótulo de eixo e o texto do gráfico de acordo com a métrica
     if metrica == 'KG_LIQUIDO': 
-        unidade = 'KG' 
-        text_template = 'KG {:,.1f}' 
+        unidade = 'kg' 
+        text_template = 'kg {:,.1f}' 
     else: 
         unidade = 'US$' 
         text_template = 'US$ {:,.1f}' 
@@ -669,7 +669,7 @@ def ranking_municipios_cargas(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno
 
     # Layout geral
     fig.update_layout(
-        title={'text': f'Top 10 municípios por {metrica} de {tipo} de', 'x': 0.5, 'xanchor': 'center'},
+        title=None,
         annotations = [dict(
             text = f'{periodo_inicial_grafico} - {periodo_final_grafico}',
             x = 0.5,
@@ -691,7 +691,7 @@ def ranking_municipios_cargas(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno
         font=dict(family='Arial', size=12),
         hoverlabel=dict(bgcolor="white", font_size=13, font_family="Rockwell"),
         plot_bgcolor='white',
-        margin=dict(l=60, r=60, t=100, b=60),
+        margin=dict(l=60, r=60, t=60, b=60),
         showlegend=False,
         xaxis=dict(
             tickangle=45

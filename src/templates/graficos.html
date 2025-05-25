@@ -9,6 +9,27 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../static/css/graficos.css"> <!--Css para ver como está no live server-->
+        <style>
+        .grafico-container {
+            background-color: #fff;
+        }
+        h1 {
+            color: #2978DF;
+            font-size: 24px;
+            text-align: center;
+            z-index: 1;
+        }
+        @media (max-width: 900px) {
+            h1 {
+                font-size: 18px;
+            }
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -90,12 +111,31 @@
         <section class="grafico">
             {% if mostrar_grafico %}
              <div class="iframe-graficos">
-                <iframe class="responsive-iframe" src="{{ url_for('grafico_primeiro') }}" frameborder="0"></iframe>
-                <iframe class="responsive-iframe" src="{{ url_for('grafico_segundo') }}" frameborder="0" ></iframe>
-                <iframe class="responsive-iframe" src="{{ url_for('grafico_terceiro') }}" frameborder="0" ></iframe>
-                <iframe class="responsive-iframe" src="{{ url_for('grafico_quarto') }}" frameborder="0" ></iframe>
+                <div class="grafico-container">
+                    <h1>Balança Comercial por Município (Exportação - Importação)</h1>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico_primeiro') }}"></iframe>
+                </div>
+
+                <div class="grafico-container">
+                    <h1>Top 10 Produtos em {{tipo_lower}} por {{metrica}} dos municípios</h1>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico_segundo') }}"></iframe>
+                </div>
+
+                <div class="grafico-container">
+                    <h1>Top 10 municípios por {{metrica}} de {{tipo_lower}} melhores 5 cargas</h1>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico_terceiro') }}"></iframe>
+                </div>
+
+                <div class="grafico-container">
+                    <h1>Top 10 municípios por {{metrica}} de {{tipo_lower}} melhores 30 cargas</h1>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico_quarto') }}"></iframe>
+                </div>
                 {% if grafico_quinto %}
-                <iframe class="responsive-iframe" src="{{ url_for('grafico_quinto') }}" frameborder="0" ></iframe>
+                <div class="grafico-container">
+                    <h1>Gráfico de Treemap</h1>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico_quinto') }}" frameborder="0" ></iframe>
+                </div>
+                
             {% endif %}
              </div>
            
