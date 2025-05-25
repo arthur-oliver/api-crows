@@ -192,11 +192,16 @@ def graficos():
                     
                     # Encontrar a posição do município desejado na lista
                     posicao = df_balanca[df_balanca['CO_MUN'] == cidade].index[0]
-                    
-                    # Definir o intervalo para pegar os municípios vizinhos
-                    start = max(posicao - 2, 0)
-                    end = min(posicao + 4, len(df_balanca))
-                    
+
+                    # Calcula os limites iniciais
+                    start = max(posicao - 5, 0)
+                    end = start + 10
+
+                    # Se passar do final, ajusta o start de novo para compensar
+                    if end > len(df_balanca):
+                        end = len(df_balanca)
+                        start = max(end - 10, 0)
+
                     # Seleciona os códigos dos municípios vizinhos
                     cods_vizinhos = df_balanca.iloc[start:end]['CO_MUN']
 

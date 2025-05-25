@@ -82,7 +82,7 @@ def balanca_comercial(df_exp, df_imp, df_mun, retorno, session_id,periodo_inicia
     balanca = mesclar_df(balanca, df_mun[['CO_MUN', 'NO_MUN_MIN']], ['CO_MUN'])
 
     # Top cidades
-    top_cidades = selecionar_top_cidades(balanca, 'BALANCA', n=5)
+    top_cidades = selecionar_top_cidades(balanca, 'BALANCA', n=10)
 
     # Paleta
     paleta_de_cores = [
