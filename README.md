@@ -94,7 +94,7 @@ A metodologia ágil, especificamente o Scrum, é uma abordagem iterativa e incre
 
 ### Backlog Sprint - 2️⃣ 🎯 ([Clique aqui](https://drive.usercontent.google.com/u/0/uc?id=1STf86eOUcT_KVyeEXYKlUaV8LyEO64W_&export=download)):  Concluído ✅ 27/04/2025
 
-### Backlog Sprint - 3️⃣ 🎯 ([Clique aqui](/)):  Concluído ☑️ 25/05/2025
+### Backlog Sprint - 3️⃣ 🎯 ([Clique aqui](/)):  Concluído ✅ 25/05/2025
 
 ## 👨‍💻 Autores
 
