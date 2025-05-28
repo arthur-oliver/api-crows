@@ -355,7 +355,7 @@ def enviar_feedback():
 
     except Exception as e:
         # Caso ocorra erro, mensagem de erro
-        status = f"Erro ao enviar o feedback: {str(e)}. Tente novamente."
+        status = f"Erro ao enviar o feedback ao Banco de dado: {str(e)}. Tente novamente."
 
     # Redireciona para a página de feedback com o status da operação
     return render_template('feedback.html', status=status)

@@ -10,8 +10,8 @@
     </head>
     <body>
         <div class="container">
-            <h1> Avalie nosso serviço!</h1> 
-            <p>Sua opinião é muito importante para nós. <br>Avalie nosso atendimento e compartilhe sua experiência conosco. </p>
+            <h1> Avalie nosso projeto!</h1> 
+            <p>Sua opinião é muito importante para nós. <br>Avalie nossa plataforma e compartilhe sua experiência conosco. </p>
 
             <!-- Exibição da mensagem de status -->
             {% if status %}
@@ -20,7 +20,7 @@
                 </div>
             {% endif %}
 
-            <form action="{{ url_for('enviar_feedback') }}" method="POST">
+            <form id="myForm" action="{{ url_for('enviar_feedback') }}" method="POST">
                 <div class="star-rating">
                     <input type="radio" name="avaliacao" id="star5" value="5" required>
                     <label for="star5">&#9733</label>
@@ -38,10 +38,25 @@
                     <label for="star1">&#9733</label>
                 </div>
 
-                <textarea name="mensagem" id="mensagem" placeholder="Compartilhe aqui o que achou do nosso serviço..." required></textarea>
+                <textarea name="mensagem" id="mensagem" placeholder="Conte como foi usar nosso plataforma e nos ajude a evoluir." required></textarea>
                 <button type="submit"> Enviar sua resposta</button>
             </form>
         </div>
         <a href="{{ url_for('home') }}" class="btn">Página Inicial</a>
+        <script>
+           document.getElementById('myForm').addEventListener('submit', function(e) {
+            const form = this;
+            const formData = new FormData(form);
+
+            fetch('https://formspree.io/f/mwpogwjj', {
+                method: "POST",
+                body: formData,
+            }).catch(err => {
+                console.warn("Possível erro CORS ignorado:", err);
+            });
+
+            alert("Feedback enviado para o nosso email! Obrigado pela avaliação.");
+            });
+        </script>
     </body>
 </html>
