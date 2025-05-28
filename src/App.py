@@ -47,8 +47,8 @@ app = Flask(__name__,
 # Sessions
 
 load_dotenv()
-# app.secret_key = os.getenv('FLASK_SECRET_KEY') -- método que necessita adicionar a chave manualmente da internet em um arquivo '.env'
-app.secret_key = '24628e4090aab888dfef37d953cb2cecc7fa22d58176135a' # chave adicionada diretamente para facilitar no desenvolvimento
+# método que necessita adicionar a chave manualmente da internet em um arquivo '.env'
+app.secret_key = os.getenv('FLASK_SECRET_KEY') 
 
 # tempo para logoff (segundos)
 SESSION_TIMEOUT = 60
@@ -322,16 +322,14 @@ def grafico_quinto():
     return send_from_directory(pasta, nome_arquivo)
 
 # ---------------------- Banco de Dados Feedback ----------------------
-senha = 'meubd'
-
 import mysql.connector
 
 # Configurações de conexão com o MySQL
 db_config = {
-    'host': 'localhost',
-    'user': 'usuario', 
-    'password': senha,
-    'database': 'feedback_database'
+    'host': os.getenv('bd_host'),
+    'user': os.getenv('bd_user'), 
+    'password': os.getenv('bd_password'),
+    'database': os.getenv('bd_name')
 }
 
 # ---------------------- Rota para receber feedback ----------------------
