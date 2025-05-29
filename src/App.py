@@ -270,6 +270,10 @@ def graficos():
                 mostrar_grafico = True
 
     tipo_lower = tipo.lower()
+    if tipo_lower == 'exportacões':
+        tipo_lower = 'exportações'
+    elif tipo_lower == 'importacões':
+        tipo_lower = 'importações'
     if metrica == 'VALOR AGREGADO':
         metrica_lower = 'valor agregado'
     elif metrica == 'KG_LIQUIDO':
