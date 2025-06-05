@@ -5,10 +5,10 @@
 1. [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 2. [Objetivo do Projeto](#-objetivo-do-projeto)
 3. [Visão do Produto](#-visão-do-produto)
-4. [Metodologia](#%EF%B8%8F-metodologia)
-5. [MVP](#-mvp-produto-mínimo-viável)
+4. [Metodologia](#-metodologia)
+5. [MVP](#-mvp)
 6. [Sprints](#-sprints)
-7. [Backlog do Produto](#%EF%B8%8F-backlog-do-produto)
+7. [Backlog do Produto](#-backlog)
 8. [Autores](#-autores)
 
 ## 👨🏻‍💻 Tecnologias Utilizadas
@@ -37,16 +37,16 @@ Este projeto visa criar uma plataforma web que oferece uma análise de desempenh
 ## 💡 Visão do Produto
 Este projeto é fundamental para fornecer aos gestores e tomadores de decisão dados claros e acessíveis sobre o desempenho dos municípios de São Paulo no comércio exterior. Com base em informações atualizadas, a plataforma permitirá identificar oportunidades de crescimento, monitorar a evolução de mercados internacionais e tomar decisões estratégicas para impulsionar a competitividade regional.
 
-## ⚙️ Metodologia
+## ⚙️ Metodologia <a id="metodologia"></a>
 A metodologia ágil, especificamente o Scrum, é uma abordagem iterativa e incremental para o gerenciamento de projetos. Scrum foca na colaboração constante, entregas rápidas e adaptação contínua às mudanças. O trabalho é dividido em ciclos curtos chamados **sprints**, que normalmente duram de 1 a 4 semanas. Durante cada sprint, equipes multidisciplinares trabalham em conjunto para entregar funcionalidades incrementais do produto. O Scrum é estruturado em papéis bem definidos, como o **Product Owner** (responsável por priorizar as tarefas), o **Scrum Master** (facilitador do processo) e a equipe de desenvolvimento. A metodologia promove a transparência, a comunicação constante e a melhoria contínua, garantindo entregas mais eficientes e alinhadas às necessidades do cliente.
 
-## 💡 MVP (Produto Mínimo Viável)
+## 💡 MVP (Produto Mínimo Viável) <a id="mvp"></a>
 
 1. Wireframe: ![Protótipo navegável](/assets/protótipo-figma.gif)
 2. Web Site: ![Primeira versão](/assets/site-sprint-2.gif)
 3. Web Site (Responsivo): <div align="center"> ![Sistema completo (responsivo)](/assets/mvp_3.gif) </div>
 
-## 🛠️ Backlog do Produto
+## 🛠️ Backlog do Produto <a id="backlog"></a>
 **:link: Clique abaixo para visualizar o backlog da sprint.**
 <details>
 <summary> Backlog - Sprint 1 </summary>
