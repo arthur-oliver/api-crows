@@ -4,11 +4,11 @@
 ## Índice
 1. [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 2. [Objetivo do Projeto](#-objetivo-do-projeto)
-3. [Visão do Produto](#-visão-do-produto)
-4. [Metodologia](#-metodologia)
-5. [MVP](#-mvp)
+3. [Visão do Produto](#visao)
+4. [Metodologia](#metodologia)
+5. [MVP](#mvp)
 6. [Sprints](#-sprints)
-7. [Backlog do Produto](#-backlog)
+7. [Backlog do Produto](#backlog)
 8. [Autores](#-autores)
 
 ## 👨🏻‍💻 Tecnologias Utilizadas
@@ -34,7 +34,7 @@
 ## 🎯 Objetivo do Projeto
 Este projeto visa criar uma plataforma web que oferece uma análise de desempenho dos municípios do estado São Paulo sobre o dados do comércio exterior, utilizando dados abertos do Ministério do Desenvolvimento, Indústria, Comércio e Serviços. A ferramenta permitirá que tomadores de decisão identifiquem municípios em ascensão, estagnação ou declínio no mercado internacional.
 
-## 💡 Visão do Produto
+## 💡 Visão do Produto <a id="visao"></a>
 Este projeto é fundamental para fornecer aos gestores e tomadores de decisão dados claros e acessíveis sobre o desempenho dos municípios de São Paulo no comércio exterior. Com base em informações atualizadas, a plataforma permitirá identificar oportunidades de crescimento, monitorar a evolução de mercados internacionais e tomar decisões estratégicas para impulsionar a competitividade regional.
 
 ## ⚙️ Metodologia <a id="metodologia"></a>
