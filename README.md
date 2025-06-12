@@ -7,8 +7,8 @@
 3. [Visão do Produto](#visao)
 4. [Metodologia](#metodologia)
 5. [MVP](#mvp)
-6. [Sprints](#-sprints)
-7. [Backlog do Produto](#backlog)
+6. [Backlog do Produto](#backlog)
+7. [Sprints](#-sprints)
 8. [Autores](#-autores)
 
 ## 👨🏻‍💻 Tecnologias Utilizadas
