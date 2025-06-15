@@ -114,7 +114,7 @@ def graficos():
         index_final = int(request.form['data_final'])
 
         # Cria a lista de meses possíveis
-        meses = pd.date_range(start='2019-01', end='2025-03', freq='MS').strftime('%Y-%m').tolist()       
+        meses = pd.date_range(start='2019-01', end='2025-05', freq='MS').strftime('%Y-%m').tolist()       
 
         # Converte os índices para datas reais
         data_inicial = meses[index_inicial]
