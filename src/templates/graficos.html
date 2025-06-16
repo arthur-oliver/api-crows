@@ -58,21 +58,24 @@
                 </div>
                                
                 <h3>TIPO DE ANÁLISE</h3>
-                <input type="radio" id="tipo" name="exp-imp" value="Exportacões" required>
-                <label for="tipo">Exportação</label><br>
-                <input type="radio" id="tipo" name="exp-imp" value="Importacões" required>
-                <label for="tipo">Importação</label><br>
+                    <input type="radio" id="tipo" name="exp-imp" value="Exportacões" required>
+                    <label>Exportação</label><br>
+                    <input type="radio" id="tipo" name="exp-imp" value="Importacões" required>
+                    <label>Importação</label><br>
+                    <input type="radio" name="exp-imp" value="Balança" required>
+                    <label>Balança Comercial</label><br>
 
-                <h3>MÉTRICA</h3>
-                <input type="radio" id="agregado" name="metrica" value="VALOR AGREGADO" required>
-                <label for="agregado">Valor Agregado</label><br>
+                <div class="metrica">
+                    <h3>MÉTRICA</h3>
+                    <input type="radio" id="agregado" name="metrica" value="VALOR AGREGADO" required>
+                    <label for="agregado">Valor Agregado</label><br>
 
-                <input type="radio" id="fob" name="metrica" value="VL_FOB" required>
-                <label for="fob">Valor FOB</label><br>
+                    <input type="radio" id="fob" name="metrica" value="VL_FOB" required>
+                    <label for="fob">Valor FOB</label><br>
 
-                <input type="radio" id="liquido" name="metrica" value="KG_LIQUIDO" required>
-                <label for="liquido">Kg Líquido</label><br>
-
+                    <input type="radio" id="liquido" name="metrica" value="KG_LIQUIDO" required>
+                    <label for="liquido">Kg Líquido</label><br>
+                </div>
 
                 <h3>Filtrar por:</h3>
                 <input type="radio" id="cidades" name="filtro" value="municipios" required>
@@ -109,36 +112,43 @@
         </section>
 
         <section class="grafico">
-            {% if mostrar_grafico %}
-             <div class="iframe-graficos">
+            {% if balança %}
                 <div class="grafico-container">
                     <h1>Balança Comercial por Município (Exportação - Importação)</h1>
-                    <iframe class="responsive-iframe" src="{{ url_for('grafico_primeiro') }}"></iframe>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico', indice=0) }}"></iframe>
+                </div>
+            {% endif %}
+            
+            {% if mostrar_grafico %}
+             <div class="iframe-graficos">
+
+                <div class="grafico-container">
+                    <h1>Top 10 municípios em {{tipo}} por {{metrica}} ao longo do período</h1>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico', indice=0) }}"></iframe>
                 </div>
 
                 <div class="grafico-container">
                     <h1>Top 10 Produtos em {{tipo}} por {{metrica}} dos municípios</h1>
-                    <iframe class="responsive-iframe" src="{{ url_for('grafico_segundo') }}"></iframe>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico', indice=1) }}"></iframe>
                 </div>
 
                 <div class="grafico-container">
                     <h1>Top 10 municípios por {{metrica}} de {{tipo}} melhores 5 cargas</h1>
-                    <iframe class="responsive-iframe" src="{{ url_for('grafico_terceiro') }}"></iframe>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico', indice=2) }}"></iframe>
                 </div>
 
                 <div class="grafico-container">
                     <h1>Top 10 municípios por {{metrica}} de {{tipo}} melhores 30 cargas</h1>
-                    <iframe class="responsive-iframe" src="{{ url_for('grafico_quarto') }}"></iframe>
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico', indice=3) }}"></iframe>
                 </div>
                 {% if grafico_quinto %}
                 <div class="grafico-container">
                     <h1>Gráfico de Treemap</h1>
-                    <iframe class="responsive-iframe" src="{{ url_for('grafico_quinto') }}" frameborder="0" ></iframe>
-                </div>
-                
-            {% endif %}
+                    <iframe class="responsive-iframe" src="{{ url_for('grafico', indice=4) }}" frameborder="0" ></iframe>
+                </div>                
+                {% endif %}
+
              </div>
-           
             {% endif %}
 
         </section>
@@ -186,6 +196,24 @@
         // Atualiza os labels ao carregar a página
         atualizarLabel(dataInicialInput, labelInicial);
         atualizarLabel(dataFinalInput, labelFinal);
+    </script>
+
+    <script>
+        const tipoRadios = document.getElementsByName('exp-imp');
+        const metricaRadios = document.getElementsByName('metrica');
+        const fobRadio = document.getElementById('fob');
+
+        tipoRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+            if (this.value === 'Balança') {
+                fobRadio.checked = true; // Marca VL_FOB automaticamente
+                metricaRadios.forEach(input => input.required = false); // Remove required
+            } else {
+                metricaRadios.forEach(input => input.required = true); // Torna todos obrigatórios novamente
+                fobRadio.checked = false; // Desmarca VL_FOB se estava marcado
+            }
+            });
+        });
     </script>
 
     <script>
