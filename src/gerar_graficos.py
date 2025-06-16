@@ -237,6 +237,182 @@ def balanca_comercial(df_exp, df_imp, df_mun, retorno, session_id,periodo_inicia
 
     return caminho_arquivo
 
+# Função principal do gráfico ao longo do ano ou mes
+def grafico_periodo(df, df_mun, tipo, metrica, retorno, session_id,periodo_inicial_grafico,periodo_final_grafico):
+    df_data = adicionar_mes_ano(df)
+
+    # Verfica o periodo está dentre um ano
+    coluna = 'ANO'
+    qtd_ano = df_data['ANO'].nunique()
+    if qtd_ano <= 1:
+        coluna = 'MES'
+    elif qtd_ano <=3:
+        coluna = 'DATA'
+
+    if metrica == 'VL_FOB' or metrica == 'KG_LIQUIDO':
+        df_total = agrupar_df(df_data, ['CO_MUN', coluna], metrica, 'sum')
+    elif metrica == 'VALOR AGREGADO':
+        df_total = df_data.groupby(['CO_MUN', coluna])[metrica].mean().reset_index()
+
+        # Agora calcula o total por município em todo o período
+        df_geral = df_total.groupby('CO_MUN')[metrica].mean().reset_index()
+
+        top_10_municipios = df_geral.sort_values(by=metrica, ascending=False).head(10)['CO_MUN']
+
+        # Filtra o DataFrame original para conter apenas esses municípios
+        df_filtrado = df_total[df_total['CO_MUN'].isin(top_10_municipios)]
+
+        df_total = df_filtrado.copy()
+
+    municipios = mesclar_df(df_total, df_mun[['CO_MUN', 'NO_MUN_MIN']], ['CO_MUN'])
+
+    # Top cidades
+    top_cidades = selecionar_top_cidades(municipios, metrica, n=10)
+
+    # Paleta
+    paleta_de_cores = [
+        "#003d80",   # azul bem escuro
+        "#0059b3",  # azul escuro
+        "#0073e6",  # azul intenso
+        "#3399ff",  # azul
+        "#66b2ff",  # azul médio
+        "#99ccff",  # azul claro
+        "#cce5ff"  # azul bem claro  
+    ]
+
+    # Define a unidade de acordo com a métrica
+    if metrica == 'KG_LIQUIDO':
+        unidade = 'kg'
+    else:
+        unidade = 'US$'
+
+    # Cria o gráfico
+    fig = px.line(
+        top_cidades,
+        x=coluna,
+        y=metrica,
+        color='NO_MUN_MIN',
+        markers=True,
+        title=None,
+        labels={
+            'NO_MUN_MIN': 'Município',
+            metrica: f'Valor ({unidade})',
+            coluna: 'Período'
+        },
+        line_shape='linear',
+        hover_data={'NO_MUN_MIN': True, metrica: ':.2f'},
+        color_discrete_sequence=paleta_de_cores
+    )
+
+    # Ajuste do eixo X para meses
+    if coluna == 'MES':
+        meses_nomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+        fig.update_xaxes(
+            tickmode='array',
+            tickvals=list(range(1, 13)),
+            ticktext=meses_nomes
+        )
+
+    # Ajuste dinâmico do eixo X para datas
+    if coluna == 'DATA':
+        meses_abreviados_pt = {
+            1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
+            7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'
+        }
+        x_vals = sorted(top_cidades[coluna].unique())
+        step = max(len(x_vals) // 12, 1)
+        tick_vals = x_vals[::step]
+        tick_text = [f"{meses_abreviados_pt[val.month]}/{val.year}" for val in tick_vals]
+        fig.update_xaxes(tickmode='array', tickvals=tick_vals, ticktext=tick_text)
+
+    # Função para formatar valores no hover (B, M, etc) conforme unidade
+    def format_valor(v):
+        if unidade == 'US$':
+            if abs(v) >= 1e9:
+                return f'US$ {v / 1e9:.1f}B'
+            elif abs(v) >= 1e6:
+                return f'US$ {v / 1e6:.1f}M'
+            else:
+                return f'US$ {v:,.2f}'
+                
+        else:  # unidade == 'kg'
+            if abs(v) >= 1e9:
+                return f'{v / 1e9:.1f}B kg'
+            elif abs(v) >= 1e6:
+                return f'{v / 1e6:.1f}M kg'
+            elif abs(v) >= 1e3:
+                return f'{v / 1e3:.1f}k kg'
+            else:
+                return f'{v:,.2f} kg'
+
+    # Atualiza hover text e formatação para cada trace
+    for trace in fig.data:
+        hover_textos = [format_valor(y) for y in trace.y]
+        trace.hovertext = hover_textos
+        trace.textposition = 'top center'
+        trace.mode = 'lines+markers+text'
+        trace.textfont = dict(size=10, color='black', family='Arial')
+        trace.hovertemplate = (
+            '<b>%{customdata[0]}</b><br>' +  # Nome do município
+            'Valor: %{hovertext}<br>' +
+            'Período: %{x}<extra></extra>'
+        )
+        # Atribui o nome do município em customdata para hovertemplate
+        trace.customdata = [[trace.name]] * len(trace.y)
+
+    # Layout geral
+    fig.update_layout(
+        title=None,
+        annotations=[dict(
+            text=f'{periodo_inicial_grafico} - {periodo_final_grafico}',
+            x=0.5, y=1.10,
+            xref='paper', yref='paper',
+            font=dict(size=14),
+            showarrow=False
+        )],
+        xaxis_title='Mês' if coluna == 'MES' else 'Ano',
+        yaxis_title=f'Valor ({unidade})',
+        legend_title='Município',
+        font=dict(family='Arial', size=12),
+        hoverlabel=dict(bgcolor='white', font_size=13, font_family='Rockwell'),
+        plot_bgcolor='white',
+        margin=dict(l=60, r=60, t=60, b=60),
+        showlegend=True,
+        autosize=True,
+        legend=dict(
+            orientation='h',
+            yanchor='middle',
+            y=-1.0,
+            xanchor='right',
+            x=1,
+            font=dict(size=10)
+        ),
+        xaxis=dict(tickangle=45)
+    )
+
+    # Grade de fundo
+    fig.update_xaxes(showgrid=True, gridcolor='#eeeeee', gridwidth=1)
+    fig.update_yaxes(showgrid=True, gridcolor='#eeeeee', gridwidth=1)
+
+    # Linha de base
+    fig.add_shape(
+        type='line',
+        x0=top_cidades[coluna].min(), x1=top_cidades[coluna].max(),
+        y0=0, y1=0,
+        line=dict(color='black', width=2, dash='dashdot'),
+    )
+
+    if retorno == 'fig':
+        return fig
+
+    # Salvar HTML
+    pasta_graficos = os.path.join('graficos-dinamicos', session_id)
+    os.makedirs(pasta_graficos, exist_ok=True)
+    caminho_arquivo = os.path.join(pasta_graficos, f'periodo_{session_id}.html')
+    fig.write_html(caminho_arquivo)
+
+    return caminho_arquivo
 
 # ------------------------- Método que faz o Gráfico de Todas as Cargas --------------------------------------------
 
