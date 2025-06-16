@@ -63,14 +63,11 @@ def manage_session():
             
             if elapsed_time > SESSION_TIMEOUT:
                 session.clear()
-                # Após limpar, criar nova sessão
-                session['session_id'] = str(uuid.uuid4())
-                session['timestamp'] = time.time()
+                flash("Sua sessão expirou por inatividade. Por favor, inicie uma nova consulta.")
+                return redirect(url_for('home'))  # Redireciona para a home após expiração
             else:
-                # Atualiza timestamp para manter a sessão ativa
                 session['timestamp'] = time.time()
         else:
-            # Primeira vez, cria sessão
             session['session_id'] = str(uuid.uuid4())
             session['timestamp'] = time.time()
 
@@ -103,7 +100,7 @@ def graficos():
 
     #Limpa os caminhos antes de gerar novos gráficos
     global caminhos
-    caminhos.clear()
+    session['caminhos'] = []
     tipo =''
     metrica = ''
     metrica_lower =''
@@ -388,4 +385,4 @@ def enviar_feedback():
 #----------------- Inicia o servidor Flask para Feedback ---------------
 #Roda a aplicação localmente com debug=True (útil durante o desenvolvimento).
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
