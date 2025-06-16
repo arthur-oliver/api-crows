@@ -5,7 +5,7 @@ import numpy as np
 import mysql.connector
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, abort, session, flash
-from gerar_graficos import balanca_comercial,ranking_municipios,funil_por_produto,ranking_municipios_cargas,municipio_cargas  # Função que gera o HTML do gráfico
+from gerar_graficos import balanca_comercial, grafico_periodo, ranking_municipios,funil_por_produto,ranking_municipios_cargas,municipio_cargas  # Função que gera o HTML do gráfico
 
 
 # ================== CARREGAR DATAFRAMES ANTES DE INICIAR O APP ==================
@@ -98,6 +98,7 @@ caminhos = []
 def graficos():
     mostrar_grafico = False
     grafico_quinto = False
+    balança = False
 
     #Limpa os caminhos antes de gerar novos gráficos
     global caminhos
@@ -248,26 +249,36 @@ def graficos():
             if not df_filtrado_exp.empty and not df_filtrado_imp.empty:
                 if tipo == 'Exportacões':
                     caminhos = [
-                        balanca_comercial(df_filtrado_exp, df_filtrado_imp, df_mun, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
+                        grafico_periodo(df_filtrado_exp, df_mun, tipo, metrica, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
                         funil_por_produto(df_filtrado_exp, df_sh4, tipo, metrica, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
                         ranking_municipios(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
                         ranking_municipios_cargas(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
                     ]
                     if cidade:
                         caminhos.append(municipio_cargas(df_filtrado_exp, df_mun, df_sh4, cidade, tipo, metrica, '', session['session_id']))
+                    mostrar_grafico = True
 
                 elif tipo == 'Importacões':
                     caminhos = [
-                        balanca_comercial(df_filtrado_exp, df_filtrado_imp, df_mun, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
+                        grafico_periodo(df_filtrado_imp, df_mun, tipo, metrica, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
                         funil_por_produto(df_filtrado_imp, df_sh4, tipo, metrica, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
                         ranking_municipios(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
                         ranking_municipios_cargas(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
                     ]
                     if cidade:
                         caminhos.append(municipio_cargas(df_filtrado_imp, df_mun, df_sh4, cidade, tipo, metrica, '', session['session_id']))
+                    mostrar_grafico = True
+                
+                elif tipo ==  'Balança':
+                    mostrar_grafico = False
+                    balança = True
+                    caminhos = [
+                        balanca_comercial(df_filtrado_exp, df_filtrado_imp, df_mun, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico)
+                    ]
+                    
 
                 session['caminhos'] = caminhos
-                mostrar_grafico = True
+                
 
     tipo_lower = tipo.lower()
     if tipo_lower == 'exportacões':
@@ -282,47 +293,15 @@ def graficos():
         metrica_lower = 'valor FOB'
 
     #Renderiza a página de gráficos
-    return render_template('graficos.html', mostrar_grafico=mostrar_grafico, grafico_quinto=grafico_quinto, tipo=tipo_lower, metrica=metrica_lower)
+    return render_template('graficos.html', mostrar_grafico=mostrar_grafico, grafico_quinto=grafico_quinto, tipo=tipo_lower, metrica=metrica_lower, balança=balança)
 
 #------ Rotas para exibir os arquivos HTML dos gráficos ----
-@app.route('/grafico_primeiro')
-def grafico_primeiro():
-    caminhos = session.get('caminhos', [])
-    if len(caminhos) < 1 or not os.path.exists(caminhos[0]):
-        return abort(404, description="Gráfico não encontrado.")
-    pasta, nome_arquivo = os.path.split(caminhos[0])
-    return send_from_directory(pasta, nome_arquivo)
-
-@app.route('/grafico_segundo')
-def grafico_segundo():
-    caminhos = session.get('caminhos', [])
-    if len(caminhos) < 2 or not os.path.exists(caminhos[1]):
-        return abort(404, description="Gráfico não encontrado.")
-    pasta, nome_arquivo = os.path.split(caminhos[1])
-    return send_from_directory(pasta, nome_arquivo)
-
-@app.route('/grafico_terceiro')
-def grafico_terceiro():
-    caminhos = session.get('caminhos', [])
-    if len(caminhos) < 3 or not os.path.exists(caminhos[2]):
-        return abort(404, description="Gráfico não encontrado.")
-    pasta, nome_arquivo = os.path.split(caminhos[2])
-    return send_from_directory(pasta, nome_arquivo)
-
-@app.route('/grafico_quarto')
-def grafico_quarto():
-    caminhos = session.get('caminhos', [])
-    if len(caminhos) < 4 or not os.path.exists(caminhos[3]):
-        return abort(404, description="Gráfico não encontrado.")
-    pasta, nome_arquivo = os.path.split(caminhos[3])
-    return send_from_directory(pasta, nome_arquivo)
-
-@app.route('/grafico_quinto')
-def grafico_quinto():
-    caminhos = session.get('caminhos', [])
-    if len(caminhos) < 5 or not os.path.exists(caminhos[4]):
-        return abort(404, description="Gráfico não encontrado.")
-    pasta, nome_arquivo = os.path.split(caminhos[4])
+@app.route('/grafico/<int:indice>')
+def grafico(indice):
+    caminhos = session.get('caminhos',[])
+    if indice >= len(caminhos) or not os.path.exists(caminhos[indice]):
+        return abort(404, description="Gráfico não encontrado")
+    pasta, nome_arquivo = os.path.split(caminhos[indice])
     return send_from_directory(pasta, nome_arquivo)
 
 # ---------------------- Banco de Dados Feedback ----------------------
