@@ -56,29 +56,30 @@ SESSION_TIMEOUT = 60
 @app.before_request
 def manage_session():
     if request.endpoint == 'graficos':
-        # Verifica se a sessão tem um timestamp de início
         session_timestamp = session.get('timestamp')
         
         if session_timestamp:
-            # Verifica o tempo passado desde o timestamp
             elapsed_time = time.time() - session_timestamp
             
             if elapsed_time > SESSION_TIMEOUT:
-                session_id = session.pop('session_id', None)
-                if session_id:
-                    try:
-                        shutil.rmtree(f'graficos-dinamicos/{session_id}/')
-                        # print(f"Pasta graficos-dinamicos/{session_id}/ e seu conteúdo excluídos com sucesso.")
-                    except OSError as e:
-                        print(f'Erro ao excluir arquivos: {e}')
-                # print("Sessão expirada e apagada!")
-
-        # Cria session caso não exista uma
-        if 'session_id' not in session:
+                session.clear()
+                # Após limpar, criar nova sessão
+                session['session_id'] = str(uuid.uuid4())
+                session['timestamp'] = time.time()
+            else:
+                # Atualiza timestamp para manter a sessão ativa
+                session['timestamp'] = time.time()
+        else:
+            # Primeira vez, cria sessão
             session['session_id'] = str(uuid.uuid4())
             session['timestamp'] = time.time()
-            # print(session['session_id'])
 
+import hashlib
+import json
+
+def gerar_grafico_id(filtros):
+    filtros_str = json.dumps(filtros, sort_keys=True)
+    return hashlib.md5(filtros_str.encode()).hexdigest()
 
 #---------------------- Página Inicial --------------------
 @app.route('/')
@@ -133,153 +134,189 @@ def graficos():
         metrica = request.form.get('metrica','')
         filtro = request.form.get('filtro','')
         opcao = request.form.get('opcao','')
+        carga,cidade,regiao = '','',''
         
+        from consultar_registro import consultar
+        from registrar_grafico import registrar
 
         #verifica se foi escolhido o tipo e a metrica
         if tipo and metrica and filtro:
             data_inicial = f'{data_inicial}-01'
             data_final = f'{data_final}-01'
 
-            # Filtrar os dados com base no intervalo de datas
-            df_filtrado_exp, df_filtrado_imp = pd.DataFrame(), pd.DataFrame()
-            df_filtrado_exp = df_completo_exp[(df_completo_exp['DATA'] >= data_inicial) & (df_completo_exp['DATA'] <= data_final)]
-            df_filtrado_imp = df_completo_imp[(df_completo_imp['DATA'] >= data_inicial) & (df_completo_imp['DATA'] <= data_final)]
+            # Cria o dicionário de filtros
+            filtros = {
+                'tipo': tipo,
+                'metrica': metrica,
+                'filtro': filtro,
+                'opcao': opcao,
+                'data_inicial': data_inicial,
+                'data_final': data_final
+            }
 
-            carga,cidade,regiao = '','',''
-            if filtro == 'municipios':
-                pass  # não faz nada e segue o código normalmente
+            grafico_id = gerar_grafico_id(filtros)
 
-            elif filtro == 'microrregiao':
+            # Consulta se já existe esse conjunto de filtros
+            caminhos = consultar(filtros)
 
-                # A variável 'regiao' recebe a opção de região desejada
-                regiao = opcao
+            if caminhos:
+                # Se já existe, não precisa gerar novamente
+                session['caminhos'] = caminhos
 
-                # Filtra o DataFrame 'df_regioes' para encontrar os municípios que pertencem à região selecionada
-                cidades_regiao = df_regioes[df_regioes['Região'] == regiao]['Município']
+                if tipo == 'Balança':
+                    Balança = True
+                    mostrar_grafico = False                
+                else:
+                    Balança = False
+                    mostrar_grafico = True
 
-                # Filtra o DataFrame 'df_mun' para encontrar os códigos dos municípios ('CO_MUN') que pertencem à região selecionada
-                cods_mun = df_mun[df_mun['NO_MUN_MIN'].isin(cidades_regiao)][['NO_MUN_MIN','CO_MUN']]
-
-                # Filtra 'df_filtrado_exp' para manter apenas os registros com 'CO_MUN' (código do município) presentes na lista 'cods_mun'
-                df_filtrado_exp = df_filtrado_exp[df_filtrado_exp['CO_MUN'].isin(cods_mun['CO_MUN'])]
-
-                if df_filtrado_exp.empty:
-                    flash("A região possui um ou mais valores nulos ou inexistentes para as métricas selecionadas.")
-                    pass
-
-                # Reseta os índices do DataFrame 'df_filtrado_exp' após o filtro, removendo qualquer índice antigo
-                df_filtrado_exp.reset_index(drop=True, inplace=True)
-
-                # Repete o processo para 'df_filtrado_imp', filtrando os registros de 'df_filtrado_imp' que correspondem aos municípios da região selecionada
-                df_filtrado_imp = df_filtrado_imp[df_filtrado_imp['CO_MUN'].isin(cods_mun['CO_MUN'])]
-
-                # Reseta os índices do DataFrame 'df_filtrado_imp' após o filtro, para manter um índice contínuo e limpo
-                df_filtrado_imp.reset_index(drop=True, inplace=True)
-
-            elif filtro == 'portes':
-                try:
-                    cidade = opcao.split(" - ")[0]
-                    cidade = int(cidade)
-                    
-                    # Calcular o valor FOB total (exportações e importações)
-                    df_exp = df_filtrado_exp.groupby('CO_MUN')['VL_FOB'].sum().reset_index(name='EXPORTACAO')
-                    df_imp = df_filtrado_imp.groupby('CO_MUN')['VL_FOB'].sum().reset_index(name='IMPORTACAO')
-                    
-                    # Junta os dataframes de exportação e importação
-                    df_balanca = pd.merge(df_exp, df_imp, on='CO_MUN', how='outer').fillna(0)
-
-                    # Adiciona a coluna de "Força Comercial" (diferente entre exportações e importações)
-                    df_balanca['FORCA_COMERCIAL'] = df_balanca['EXPORTACAO'] - df_balanca['IMPORTACAO']
-
-                    # Ordena os municípios pela "força comercial"
-                    df_balanca = df_balanca.sort_values(by='FORCA_COMERCIAL', ascending=False).reset_index(drop=True)
-                    
-                    # Encontrar a posição do município desejado na lista
-                    posicao = df_balanca[df_balanca['CO_MUN'] == cidade].index[0]
-
-                    # Calcula os limites iniciais
-                    start = max(posicao - 5, 0)
-                    end = start + 10
-
-                    # Se passar do final, ajusta o start de novo para compensar
-                    if end > len(df_balanca):
-                        end = len(df_balanca)
-                        start = max(end - 10, 0)
-
-                    # Seleciona os códigos dos municípios vizinhos
-                    cods_vizinhos = df_balanca.iloc[start:end]['CO_MUN']
-
-                    # Filtra os dataframes de exportação e importação para esses municípios vizinhos
-                    df_filtrado_exp = df_filtrado_exp[df_filtrado_exp['CO_MUN'].isin(cods_vizinhos)].reset_index(drop=True)
-                    df_filtrado_imp = df_filtrado_imp[df_filtrado_imp['CO_MUN'].isin(cods_vizinhos)].reset_index(drop=True)
-
+                if cidade:
                     grafico_quinto = True
-
-                except (Exception, TypeError, ValueError, np._core._exceptions._UFuncNoLoopError) as e:
-                    flash(f"Um ou mais valores são nulos ou inexistentes, impedindo a geração dos gráficos. Erro: {e}")
-                    return render_template('graficos.html')
-
-            elif filtro == 'carga':
-                carga = opcao.split(" - ")[0]
-                carga = int(carga)
-
-                df_exp_carga = df_filtrado_exp[df_filtrado_exp['SH4'] == carga]
-                df_imp_carga  = df_filtrado_imp[df_filtrado_imp['SH4'] == carga]
-
-                if (df_exp_carga.empty or df_imp_carga.empty):
-                    flash("A carga possui valor nulo ou não existente para um ou mais municípios.")
-                    pass 
-
-                df_exp_agrupado = df_exp_carga.groupby('CO_MUN')['VL_FOB'].sum().reset_index()
-                df_imp_agrupado = df_imp_carga.groupby('CO_MUN')['VL_FOB'].sum().reset_index()
-
-                df_exp_agrupado = df_exp_agrupado.sort_values(by='VL_FOB', ascending=False)
-                df_imp_agrupado = df_imp_agrupado.sort_values(by='VL_FOB', ascending=False)
-
-                cods_exp_carga = df_exp_agrupado['CO_MUN']
-                cods_imp_carga = df_imp_agrupado['CO_MUN']
-
-                df_filtrado_exp = df_filtrado_exp[df_filtrado_exp['CO_MUN'].isin(cods_exp_carga)]
-                df_filtrado_exp.reset_index(drop=True, inplace=True)
-
-                df_filtrado_imp = df_filtrado_imp[df_filtrado_imp['CO_MUN'].isin(cods_imp_carga)]
-                df_filtrado_imp.reset_index(drop=True, inplace=True)
-
-            #Se dados existem, gera os gráficos
-            if not df_filtrado_exp.empty and not df_filtrado_imp.empty:
-                if tipo == 'Exportacões':
-                    caminhos = [
-                        grafico_periodo(df_filtrado_exp, df_mun, tipo, metrica, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
-                        funil_por_produto(df_filtrado_exp, df_sh4, tipo, metrica, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
-                        ranking_municipios(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
-                        ranking_municipios_cargas(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
-                    ]
-                    if cidade:
-                        caminhos.append(municipio_cargas(df_filtrado_exp, df_mun, df_sh4, cidade, tipo, metrica, '', session['session_id']))
-                    mostrar_grafico = True
-
-                elif tipo == 'Importacões':
-                    caminhos = [
-                        grafico_periodo(df_filtrado_imp, df_mun, tipo, metrica, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
-                        funil_por_produto(df_filtrado_imp, df_sh4, tipo, metrica, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
-                        ranking_municipios(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
-                        ranking_municipios_cargas(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico),
-                    ]
-                    if cidade:
-                        caminhos.append(municipio_cargas(df_filtrado_imp, df_mun, df_sh4, cidade, tipo, metrica, '', session['session_id']))
-                    mostrar_grafico = True
+                else: grafico_quinto = False
                 
-                elif tipo ==  'Balança':
-                    mostrar_grafico = False
-                    balança = True
-                    caminhos = [
-                        balanca_comercial(df_filtrado_exp, df_filtrado_imp, df_mun, '', session['session_id'],periodo_inicial_grafico,periodo_final_grafico)
-                    ]
+            else:           
+                # Filtrar os dados com base no intervalo de datas
+                df_filtrado_exp, df_filtrado_imp = pd.DataFrame(), pd.DataFrame()
+                df_filtrado_exp = df_completo_exp[(df_completo_exp['DATA'] >= data_inicial) & (df_completo_exp['DATA'] <= data_final)]
+                df_filtrado_imp = df_completo_imp[(df_completo_imp['DATA'] >= data_inicial) & (df_completo_imp['DATA'] <= data_final)]
+
+                if filtro == 'municipios':
+                    pass  # não faz nada e segue o código normalmente
+
+                elif filtro == 'microrregiao':
+
+                    # A variável 'regiao' recebe a opção de região desejada
+                    regiao = opcao
+
+                    # Filtra o DataFrame 'df_regioes' para encontrar os municípios que pertencem à região selecionada
+                    cidades_regiao = df_regioes[df_regioes['Região'] == regiao]['Município']
+
+                    # Filtra o DataFrame 'df_mun' para encontrar os códigos dos municípios ('CO_MUN') que pertencem à região selecionada
+                    cods_mun = df_mun[df_mun['NO_MUN_MIN'].isin(cidades_regiao)][['NO_MUN_MIN','CO_MUN']]
+
+                    # Filtra 'df_filtrado_exp' para manter apenas os registros com 'CO_MUN' (código do município) presentes na lista 'cods_mun'
+                    df_filtrado_exp = df_filtrado_exp[df_filtrado_exp['CO_MUN'].isin(cods_mun['CO_MUN'])]
+
+                    if df_filtrado_exp.empty:
+                        flash("A região possui um ou mais valores nulos ou inexistentes para as métricas selecionadas.")
+                        pass
+
+                    # Reseta os índices do DataFrame 'df_filtrado_exp' após o filtro, removendo qualquer índice antigo
+                    df_filtrado_exp.reset_index(drop=True, inplace=True)
+
+                    # Repete o processo para 'df_filtrado_imp', filtrando os registros de 'df_filtrado_imp' que correspondem aos municípios da região selecionada
+                    df_filtrado_imp = df_filtrado_imp[df_filtrado_imp['CO_MUN'].isin(cods_mun['CO_MUN'])]
+
+                    # Reseta os índices do DataFrame 'df_filtrado_imp' após o filtro, para manter um índice contínuo e limpo
+                    df_filtrado_imp.reset_index(drop=True, inplace=True)
+
+                elif filtro == 'portes':
+                    try:
+                        cidade = opcao.split(" - ")[0]
+                        cidade = int(cidade)
+                        
+                        # Calcular o valor FOB total (exportações e importações)
+                        df_exp = df_filtrado_exp.groupby('CO_MUN')['VL_FOB'].sum().reset_index(name='EXPORTACAO')
+                        df_imp = df_filtrado_imp.groupby('CO_MUN')['VL_FOB'].sum().reset_index(name='IMPORTACAO')
+                        
+                        # Junta os dataframes de exportação e importação
+                        df_balanca = pd.merge(df_exp, df_imp, on='CO_MUN', how='outer').fillna(0)
+
+                        # Adiciona a coluna de "Força Comercial" (diferente entre exportações e importações)
+                        df_balanca['FORCA_COMERCIAL'] = df_balanca['EXPORTACAO'] - df_balanca['IMPORTACAO']
+
+                        # Ordena os municípios pela "força comercial"
+                        df_balanca = df_balanca.sort_values(by='FORCA_COMERCIAL', ascending=False).reset_index(drop=True)
+                        
+                        # Encontrar a posição do município desejado na lista
+                        posicao = df_balanca[df_balanca['CO_MUN'] == cidade].index[0]
+
+                        # Calcula os limites iniciais
+                        start = max(posicao - 5, 0)
+                        end = start + 10
+
+                        # Se passar do final, ajusta o start de novo para compensar
+                        if end > len(df_balanca):
+                            end = len(df_balanca)
+                            start = max(end - 10, 0)
+
+                        # Seleciona os códigos dos municípios vizinhos
+                        cods_vizinhos = df_balanca.iloc[start:end]['CO_MUN']
+
+                        # Filtra os dataframes de exportação e importação para esses municípios vizinhos
+                        df_filtrado_exp = df_filtrado_exp[df_filtrado_exp['CO_MUN'].isin(cods_vizinhos)].reset_index(drop=True)
+                        df_filtrado_imp = df_filtrado_imp[df_filtrado_imp['CO_MUN'].isin(cods_vizinhos)].reset_index(drop=True)
+
+                        grafico_quinto = True
+
+                    except (Exception, TypeError, ValueError, np._core._exceptions._UFuncNoLoopError) as e:
+                        flash(f"Um ou mais valores são nulos ou inexistentes, impedindo a geração dos gráficos. Erro: {e}")
+                        return render_template('graficos.html')
+
+                elif filtro == 'carga':
+                    carga = opcao.split(" - ")[0]
+                    carga = int(carga)
+
+                    df_exp_carga = df_filtrado_exp[df_filtrado_exp['SH4'] == carga]
+                    df_imp_carga  = df_filtrado_imp[df_filtrado_imp['SH4'] == carga]
+
+                    if (df_exp_carga.empty or df_imp_carga.empty):
+                        flash("A carga possui valor nulo ou não existente para um ou mais municípios.")
+                        pass 
+
+                    df_exp_agrupado = df_exp_carga.groupby('CO_MUN')['VL_FOB'].sum().reset_index()
+                    df_imp_agrupado = df_imp_carga.groupby('CO_MUN')['VL_FOB'].sum().reset_index()
+
+                    df_exp_agrupado = df_exp_agrupado.sort_values(by='VL_FOB', ascending=False)
+                    df_imp_agrupado = df_imp_agrupado.sort_values(by='VL_FOB', ascending=False)
+
+                    cods_exp_carga = df_exp_agrupado['CO_MUN']
+                    cods_imp_carga = df_imp_agrupado['CO_MUN']
+
+                    df_filtrado_exp = df_filtrado_exp[df_filtrado_exp['CO_MUN'].isin(cods_exp_carga)]
+                    df_filtrado_exp.reset_index(drop=True, inplace=True)
+
+                    df_filtrado_imp = df_filtrado_imp[df_filtrado_imp['CO_MUN'].isin(cods_imp_carga)]
+                    df_filtrado_imp.reset_index(drop=True, inplace=True)
+
+                #Se dados existem, gera os gráficos
+                if not df_filtrado_exp.empty and not df_filtrado_imp.empty:
+                    if tipo == 'Exportacões':
+                        caminhos = [
+                            grafico_periodo(df_filtrado_exp, df_mun, tipo, metrica, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            funil_por_produto(df_filtrado_exp, df_sh4, tipo, metrica, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            ranking_municipios(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            ranking_municipios_cargas(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                        ]
+                        if cidade:
+                            caminhos.append(municipio_cargas(df_filtrado_exp, df_mun, df_sh4, cidade, tipo, metrica, '', grafico_id))
+                        mostrar_grafico = True
+
+                    elif tipo == 'Importacões':
+                        caminhos = [
+                            grafico_periodo(df_filtrado_imp, df_mun, tipo, metrica, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            funil_por_produto(df_filtrado_imp, df_sh4, tipo, metrica, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            ranking_municipios(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            ranking_municipios_cargas(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                        ]
+                        if cidade:
+                            caminhos.append(municipio_cargas(df_filtrado_imp, df_mun, df_sh4, cidade, tipo, metrica, '', grafico_id))
+                        mostrar_grafico = True
                     
+                    elif tipo ==  'Balança':
+                        mostrar_grafico = False
+                        balança = True
+                        caminhos = [
+                            balanca_comercial(df_filtrado_exp, df_filtrado_imp, df_mun, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico)
+                        ]
 
                 session['caminhos'] = caminhos
-                
 
+                # Ao final, se caminhos foi preenchido com sucesso
+                if caminhos:
+                    registrar(filtros, caminhos)
+                    session['caminhos'] = caminhos
+                
     tipo_lower = tipo.lower()
     if tipo_lower == 'exportacões':
         tipo_lower = 'exportações'
@@ -298,9 +335,14 @@ def graficos():
 #------ Rotas para exibir os arquivos HTML dos gráficos ----
 @app.route('/grafico/<int:indice>')
 def grafico(indice):
-    caminhos = session.get('caminhos',[])
-    if indice >= len(caminhos) or not os.path.exists(caminhos[indice]):
-        return abort(404, description="Gráfico não encontrado")
+    caminhos = session.get('caminhos', [])
+    if not caminhos:
+        return abort(404, description="Nenhum gráfico gerado.")
+    if indice >= len(caminhos):
+        return abort(404, description="Índice de gráfico inválido.")
+    if not os.path.exists(caminhos[indice]):
+        return abort(404, description=f"Arquivo não encontrado: {caminhos[indice]}")
+
     pasta, nome_arquivo = os.path.split(caminhos[indice])
     return send_from_directory(pasta, nome_arquivo)
 
