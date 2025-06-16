@@ -159,6 +159,7 @@ def graficos():
             if caminhos:
                 # Se já existe, não precisa gerar novamente
                 session['caminhos'] = caminhos
+                session.modified = True
 
                 if tipo == 'Balança':
                     Balança = True
@@ -282,8 +283,8 @@ def graficos():
                         caminhos = [
                             grafico_periodo(df_filtrado_exp, df_mun, tipo, metrica, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
                             funil_por_produto(df_filtrado_exp, df_sh4, tipo, metrica, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
-                            ranking_municipios(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
-                            ranking_municipios_cargas(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            ranking_municipios(df_mun, df_filtrado_exp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            ranking_municipios_cargas(df_mun, df_filtrado_exp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
                         ]
                         if cidade:
                             caminhos.append(municipio_cargas(df_filtrado_exp, df_mun, df_sh4, cidade, tipo, metrica, '', grafico_id))
@@ -293,8 +294,8 @@ def graficos():
                         caminhos = [
                             grafico_periodo(df_filtrado_imp, df_mun, tipo, metrica, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
                             funil_por_produto(df_filtrado_imp, df_sh4, tipo, metrica, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
-                            ranking_municipios(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
-                            ranking_municipios_cargas(df_mun, df_filtrado_exp, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            ranking_municipios(df_mun, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
+                            ranking_municipios_cargas(df_mun, df_filtrado_imp, tipo, metrica, df_sh4, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico),
                         ]
                         if cidade:
                             caminhos.append(municipio_cargas(df_filtrado_imp, df_mun, df_sh4, cidade, tipo, metrica, '', grafico_id))
@@ -307,12 +308,16 @@ def graficos():
                             balanca_comercial(df_filtrado_exp, df_filtrado_imp, df_mun, '', grafico_id,periodo_inicial_grafico,periodo_final_grafico)
                         ]
 
-                session['caminhos'] = caminhos
+                # Ao gerar um novo gráfico:
+                if 'graficos_gerados' not in session:
+                    session['caminhos'] = caminhos
+                    session.modified = True
 
                 # Ao final, se caminhos foi preenchido com sucesso
                 if caminhos:
                     registrar(filtros, caminhos)
                     session['caminhos'] = caminhos
+                    session.modified = True
                 
     tipo_lower = tipo.lower()
     if tipo_lower == 'exportacões':

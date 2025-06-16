@@ -541,15 +541,9 @@ def funil_por_produto(df, df_sh4, tipo, metrica, retorno, session_id,periodo_ini
 
 # ------------------------- Método que faz o Gráfico de Ranking de Municípios --------------------------------------------
 
-def ranking_municipios(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno, session_id,periodo_inicial_grafico,periodo_final_grafico):
-    
-    if(tipo == 'Exportacões'):
-        df = adicionar_ano(df_exp)
+def ranking_municipios(df_mun, df, tipo,metrica,df_prod,retorno, session_id,periodo_inicial_grafico,periodo_final_grafico):
 
-    elif(tipo == 'Importacões'):
-        df = adicionar_ano(df_imp)
-    else:
-        raise ValueError(f"Tipo inválido: {tipo}")
+    df = adicionar_ano(df)
     
     # Define o rótulo de eixo e o texto do gráfico de acordo com a métrica
     if metrica == 'KG_LIQUIDO': 
@@ -717,15 +711,9 @@ def ranking_municipios(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno, sessi
     
 
 
-def ranking_municipios_cargas(df_mun,df_exp,df_imp, tipo,metrica,df_prod,retorno, session_id,periodo_inicial_grafico,periodo_final_grafico):
-    
-    if(tipo == 'Exportacões'):
-        df = adicionar_ano(df_exp)
+def ranking_municipios_cargas(df_mun, df, tipo,metrica,df_prod,retorno, session_id,periodo_inicial_grafico,periodo_final_grafico):
 
-    elif(tipo == 'Importacões'):
-        df = adicionar_ano(df_imp)
-    else:
-        raise ValueError(f"Tipo inválido: {tipo}")
+    df = adicionar_ano(df)
     
     # Define o rótulo de eixo e o texto do gráfico de acordo com a métrica
     if metrica == 'KG_LIQUIDO': 
