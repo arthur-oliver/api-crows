@@ -299,3 +299,11 @@ footer{
     left: 2%;
 }
 }
+
+.metrica{
+  display: none;
+}
+
+#tipo:checked ~ .metrica {
+  display: block;
+}
